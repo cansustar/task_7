@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-sqlalchemy = "*"
+flask-login = "*"
+python-dotenv = "*"
+flask-mail = "*"
+flask-restful = "*"
+flask-jwt-extended = "*"
+passlib = "*"
+flask-apispec = "*"
+slugify = "*"
+python-slugify = "*"
+flask-migrate = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
