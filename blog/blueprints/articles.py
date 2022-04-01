@@ -30,15 +30,34 @@ def articles_show(limit=20, offset=0):
         # join的用法
         # 这里获得的是所有Collect模型的响应，而不是Article响应模型
         target_user = User.query.filter(User.username == favorited).first()
-        article_list = []
-        # 实在是想不出别的方法了
-        all_articles = Article.query.all()
-        for article in all_articles:
-            if target_user.is_collecting(article) is True:
-                article_list.append(article)
-        return article_list
-        #res = Article.query.filter(Article.collectors.any(User.username == favorited))
+        article_id = []
+        res_list = []
+        user_collect = Collect.query.filter(Collect.collector == target_user).all()
+        #for collect in user_collect:
+        #    article_id.append(collect.collected_id)
+        for ar_id in user_collect:
+            res = Article.query.filter(Article.id == ar_id.collected_id).first()
+            res_list.append(res)
+        return res_list
+        #for i in article_id:
+        #    res = Article.query.filter(Article.id == i).first()
+        #    return res
+
+        #for id in article_id:
+         #   res = Article.query.filter(Article.id == id).first()
+          #  return res
+        #res = Article.query.join(Article.collectors).filter(User.username == favorited)
         #return res.offset(offset).limit(limit).all()
+        #target_user = User.query.filter(User.username == favorited).first()
+        #article_list = []
+        # 实在是想不出别的方法了
+        #all_articles = Article.query.all()
+        #for article in all_articles:
+        #    if target_user.is_collecting(article) is True:
+        #        article_list.append(article)
+        #return article_list
+        # res = Article.query.filter(Article.collectors.any(User.username == favorited))
+        # return res.offset(offset).limit(limit).all()
     else:
         return Article.query.offset(offset).limit(limit).all()
 
