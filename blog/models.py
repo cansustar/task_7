@@ -143,7 +143,7 @@ class User(db.Model, UserMixin):
             db.session.add(collect)
             db.session.commit()
 
-    # 取消收藏
+    # 取消收藏,即删除对应的collect记录
     def uncollect(self, article):
         collect = Collect.query.with_parent(self).filter_by(collected_id=article.id).first()
         if collect:

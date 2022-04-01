@@ -17,7 +17,7 @@ articles_bp = Blueprint('articles', __name__)
 def articles_show(limit=20, offset=0):
     tag = request.args.get('tag')
     author = request.args.get('author')
-    username = request.args.get('favorited')
+    favorited = request.args.get('favorited')
     if tag is not None:
         res = Article.query.filter(Article.tagList.any(Tag.name == tag))
         return res.offset(offset).limit(limit).all()
@@ -25,12 +25,20 @@ def articles_show(limit=20, offset=0):
         target_author = User.query.filter(User.username == author).first()
         res = Article.query.filter(Article.author == target_author)
         return res.offset(offset).limit(limit).all()
-    if username is not None:
+    if favorited is not None:
         # 要想从user的collection中返回响应，遇到的问题是从collection中获取的响应与响应模型不一致
         # join的用法
         # 这里获得的是所有Collect模型的响应，而不是Article响应模型
-        res = Article.query.join(Article.collectors).filter(User.username == username)
-        return res.offset(offset).limit(limit).all()
+        target_user = User.query.filter(User.username == favorited).first()
+        article_list = []
+        # 实在是想不出别的方法了
+        all_articles = Article.query.all()
+        for article in all_articles:
+            if target_user.is_collecting(article) is True:
+                article_list.append(article)
+        return article_list
+        #res = Article.query.filter(Article.collectors.any(User.username == favorited))
+        #return res.offset(offset).limit(limit).all()
     else:
         return Article.query.offset(offset).limit(limit).all()
 
@@ -324,4 +332,3 @@ def unfavorite_article(slug):
         return jsonify(ret_data)
     current_user.uncollect(target_article)
     return target_article
-
