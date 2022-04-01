@@ -1,12 +1,10 @@
-from flask import Blueprint, request, redirect, url_for, make_response, jsonify
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token
-
-from blog.models import User, Article, Comment, Tag
+from blog.models import User
 from flask_login import login_user, logout_user, login_required, current_user
 from blog.estensions import db
 import json
 from blog.utils import validate_token
-from blog.settings import Operations
 
 users_bp = Blueprint('users', __name__)
 
@@ -31,15 +29,17 @@ def user_reg():
         db.session.commit()
         ret_data = {
             "code": 10000,
-            "user": {
+            "data": {"user": {
                 "email": user.email,
                 "token": user.token,
                 "username": user.username,
                 "bio": user.bio,
                 "image": user.image,
 
+            }
             },
-            "message": "null"
+            "message": "success",
+            "body": "返回当前用户"
         }
 
         return jsonify(ret_data)
@@ -49,10 +49,10 @@ def user_reg():
             "code": 10001,
             "errors": {
                 "body": [
-                    "can't be empty"
+                    "当前用户已注册"
                 ]
             },
-            "message": "user has reg"
+            "message": "fail"
         }
         return jsonify(ret_data)
 
@@ -68,28 +68,28 @@ def user_login():
     password = dic1['password']
     # 现在只查询第一条记录，目的是确认数据库中有现存记录
     exist_user = User.query.filter(User.email == dic1['email']).first()
-    # 验证邮件地址与密码是否与数据库中一致：
+    # 验证是否已注册：
     if exist_user is None:
         ret_data = {
             "code": 10002,
             "errors": {
                 "body": [
-                    "can't be empty"
+                    "输入的邮件地址未注册"
                 ]
             },
-            "message": "no this user"
+            "message": "fail"
         }
         return jsonify(ret_data)
     else:
-        # 这里存在一个问题 当尝试验证密码散列值是否相同时出错
-        if email == exist_user.email:  # and exist_user.verify_password(password):
+        # 验证邮件地址与密码与数据库中是否一致
+        if email == exist_user.email and exist_user.verify_password(password):
             login_user(exist_user)
             # 生成token
             token = create_access_token(identity=exist_user.username)
             exist_user.token = token
             ret_data = {
                 "code": 10000,
-                "user": {
+                'data': {"user": {
                     "email": exist_user.email,
                     "token": exist_user.token,
                     "username": exist_user.username,
@@ -97,9 +97,17 @@ def user_login():
                     "image": exist_user.image,
 
                 },
-                "message": "null"
+                },
+                "message": "success",
+                "body": "成功登录"
             }
-
+            return jsonify(ret_data)
+        else:
+            ret_data = {
+                "code": 10009,
+                "body": "密码或邮箱错误",
+                "message": "fail"
+            }
             return jsonify(ret_data)
 
 
@@ -109,15 +117,16 @@ def get_current_user():
     if current_user.is_authenticated:
         ret_data = {
             "code": 10000,
-            "user": {
+            "data": {"user": {
                 "email": current_user.email,
                 "token": current_user.token,
                 "username": current_user.username,
                 "bio": current_user.bio,
                 "image": current_user.image,
 
-            },
-            "message": "null"
+            }},
+            "message": "success",
+            "body": "成功获取当前用户"
         }
 
         return jsonify(ret_data)
@@ -126,10 +135,10 @@ def get_current_user():
             "code": 10003,
             "errors": {
                 "body": [
-                    "can't be empty"
+                    "未登录"
                 ]
             },
-            "message": "no auth"
+            "message": "fail"
         }
         return jsonify(ret_data)
 
@@ -144,19 +153,23 @@ def user_update():
     if current_user.is_authenticated:
         current_user.bio = new_bio
         current_user.image = new_image
+        current_user.email = email
         current_user.token = create_refresh_token(identity=current_user.username)
+        db.session.add(current_user)
         db.session.commit()
         ret_data = {
             "code": 10000,
-            "user": {
+            "data": {"user": {
                 "email": current_user.email,
                 "token": current_user.token,
                 "username": current_user.username,
                 "bio": current_user.bio,
                 "image": current_user.image,
 
+            }
             },
-            "message": "null"
+            "message": "success",
+            "body": "成功更新用户"
         }
         return jsonify(ret_data)
     else:
@@ -164,10 +177,10 @@ def user_update():
             "code": 10003,
             "errors": {
                 "body": [
-                    "can't be empty"
+                    "未登录"
                 ]
             },
-            "message": "no auth"
+            "message": "fail"
         }
         return jsonify(ret_data)
 
@@ -180,11 +193,12 @@ def user_profiles(username):
     if current_user.is_authenticated:
         ret_data = {
             "code": 10000,
-            "profile": {
+            "data": {"profile": {
                 "username": target_user.username,
                 "bio": target_user.bio,
                 "image": target_user.bio,
-                "following": current_user.is_following(target_user)},
+                "following": current_user.is_following(target_user)}
+            },
             "message": "null"}
         return jsonify(ret_data)
     else:
@@ -192,10 +206,10 @@ def user_profiles(username):
             "code": 10003,
             "errors": {
                 "body": [
-                    "can't be empty"
+                    "未登录"
                 ]
             },
-            "message": "no auth"
+            "message": "fail"
         }
         return jsonify(ret_data)
 
@@ -208,11 +222,11 @@ def user_follow(username):
         current_user.follow(target_user)
         ret_data = {
             "code": 10000,
-            "profile": {
+            "data": {"profile": {
                 "username": target_user.username,
                 "bio": target_user.bio,
                 "image": target_user.bio,
-                "following": current_user.is_following(target_user)},
+                "following": current_user.is_following(target_user)}},
             "message": "null"}
         return jsonify(ret_data)
     else:
@@ -236,11 +250,11 @@ def user_unfollow(username):
         current_user.unfollow(target_user)
         ret_data = {
             "code": 10000,
-            "profile": {
+            "data":{"profile": {
                 "username": target_user.username,
                 "bio": target_user.bio,
                 "image": target_user.bio,
-                "following": current_user.is_following(target_user)},
+                "following": current_user.is_following(target_user)}},
             "message": "null"}
         return jsonify(ret_data)
     else:
@@ -254,6 +268,3 @@ def user_unfollow(username):
             "message": "no auth"
         }
         return jsonify(ret_data)
-
-
-

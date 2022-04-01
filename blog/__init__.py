@@ -4,7 +4,6 @@ from blog.settings import config
 from blog.blueprints.users import users_bp
 from blog.blueprints.tags import tags_bp
 from blog.blueprints.articles import articles_bp
-from blog.blueprints.comments import comments_bp
 from blog.estensions import migrate, db, login_manager, mail, jwt
 from blog.models import User, Article, Tag, Comment
 
@@ -24,7 +23,6 @@ def create_app(config_name=None):
 def register_blueprints(app):
     app.register_blueprint(users_bp)
     app.register_blueprint(articles_bp)
-    app.register_blueprint(comments_bp)
     app.register_blueprint(tags_bp)
 
 

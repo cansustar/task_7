@@ -1,8 +1,8 @@
-"""slug
+"""change name
 
-Revision ID: 9407bb44f3f5
+Revision ID: deb5f6e14a8e
 Revises: 
-Create Date: 2022-03-24 23:35:43.927198
+Create Date: 2022-03-31 21:23:59.352660
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9407bb44f3f5'
+revision = 'deb5f6e14a8e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -44,8 +44,8 @@ def upgrade():
     sa.Column('description', sa.String(length=60), nullable=True),
     sa.Column('body', sa.Text(), nullable=True),
     sa.Column('author_id', sa.Integer(), nullable=True),
-    sa.Column('create_time', sa.DateTime(), nullable=True),
-    sa.Column('update_time', sa.DateTime(), nullable=True),
+    sa.Column('createdAt', sa.DateTime(), nullable=True),
+    sa.Column('updateAt', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['author_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('slug')
@@ -68,12 +68,12 @@ def upgrade():
     op.create_table('comment',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('body', sa.Text(), nullable=True),
-    sa.Column('author', sa.Integer(), nullable=True),
-    sa.Column('create_time', sa.DateTime(), nullable=True),
-    sa.Column('upgrade_time', sa.DateTime(), nullable=True),
+    sa.Column('createAt', sa.DateTime(), nullable=True),
+    sa.Column('upgradeAt', sa.DateTime(), nullable=True),
+    sa.Column('author_id', sa.Integer(), nullable=True),
     sa.Column('article_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['article_id'], ['article.id'], ),
-    sa.ForeignKeyConstraint(['author'], ['user.id'], ),
+    sa.ForeignKeyConstraint(['author_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tagging',
