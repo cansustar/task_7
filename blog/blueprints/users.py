@@ -62,7 +62,7 @@ def user_reg():
 def user_login():
     # 从请求的json串中获取参数email和password
     # 使用request.get_json()获得的数据与json.loads(request.get_data())不同
-    data = json.loads(request.get_data())
+    data = request.get_json()
     dic1 = data.get("user")
     email = dic1['email']
     password = dic1['password']

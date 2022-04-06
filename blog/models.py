@@ -211,7 +211,7 @@ class ArticleSchema(Schema):
         # 由于我把收藏文章的方法写给了user，所以这里只能把favorited响应字段写在额外的响应内容里
         data['favorited'] = current_user.is_collecting(Article.query.filter_by(slug=data['slug']).first())
         data['favoritedCount'] = len(Article.query.filter_by(slug=data['slug']).first().collectors)
-        return {'article': data}
+        return {'data': {'article': data}}
 
     @post_dump
     def dump_message(self, data, **kwargs):
@@ -229,6 +229,13 @@ class ArticleSchemas(ArticleSchema):
     @post_dump(pass_many=True)
     def dump_articles(self, data, many, **kwargs):
         return {'articles': data, 'articleCount': len(data)}
+
+    @post_dump(pass_many=True)
+    def dump_mes(self, data, many, **kwargs):
+        data['message'] = 'success'
+        data['code'] = 10000
+        data['body'] = 'null'
+        return data
 
 
 # 评论的响应模型

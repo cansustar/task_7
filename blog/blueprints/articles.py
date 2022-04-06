@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_apispec import use_kwargs, marshal_with
 from marshmallow import fields
-from blog.models import User, Article, Comment, Tag, Collect, article_schema, articles_schema, comment_schema, \
+from blog.models import User, Article, Comment, Tag, article_schema, articles_schema, comment_schema, \
     comments_schema, Follow
 from flask_login import login_required, current_user
 from blog.estensions import db
@@ -32,32 +32,13 @@ def articles_show(limit=20, offset=0):
         target_user = User.query.filter(User.username == favorited).first()
         article_id = []
         res_list = []
-        user_collect = Collect.query.filter(Collect.collector == target_user).all()
-        #for collect in user_collect:
+        user_collect = target_user.collections
+        # for collect in user_collect:
         #    article_id.append(collect.collected_id)
         for ar_id in user_collect:
             res = Article.query.filter(Article.id == ar_id.collected_id).first()
             res_list.append(res)
         return res_list
-        #for i in article_id:
-        #    res = Article.query.filter(Article.id == i).first()
-        #    return res
-
-        #for id in article_id:
-         #   res = Article.query.filter(Article.id == id).first()
-          #  return res
-        #res = Article.query.join(Article.collectors).filter(User.username == favorited)
-        #return res.offset(offset).limit(limit).all()
-        #target_user = User.query.filter(User.username == favorited).first()
-        #article_list = []
-        # 实在是想不出别的方法了
-        #all_articles = Article.query.all()
-        #for article in all_articles:
-        #    if target_user.is_collecting(article) is True:
-        #        article_list.append(article)
-        #return article_list
-        # res = Article.query.filter(Article.collectors.any(User.username == favorited))
-        # return res.offset(offset).limit(limit).all()
     else:
         return Article.query.offset(offset).limit(limit).all()
 

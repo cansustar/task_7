@@ -16,7 +16,7 @@ def create_app(config_name=None):
     app.config.from_object(config[config_name])
     register_blueprints(app)
     register_extensions(app)
-    register_shellcontext(app)
+    register_shell_context(app)
     return app
 
 
@@ -34,10 +34,7 @@ def register_extensions(app):
     jwt.init_app(app)
 
 
-def register_shellcontext(app):
+def register_shell_context(app):
+    @app.shell_context_processor
     def shell_context():
         return dict(db=db, User=User, Article=Article, Comment=Comment, Tags=Tag)
-    app.shell_context_processor(shell_context)
-
-
-
